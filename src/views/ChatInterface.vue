@@ -16,10 +16,13 @@
       <!-- 顶部工具栏 -->
       <ChatToolbar 
         @toggle-sidebar="toggleSidebar"
+        @new-session="handleNewSession"
         @open-agent-selection="handleOpenAgentSelection"
         @model-change="handleModelChange"
         :current-model="currentModel"
         :current-agent="currentAgent"
+        :sidebar-hidden="sidebarHidden"
+        :is-connected="isConnected"
       />
       
       <!-- 聊天容器 -->
@@ -36,6 +39,7 @@
       <ChatInput 
         @send-message="handleSendMessage"
         :is-loading="isLoading"
+        :current-agent="currentAgent"
       />
     </div>
   </div>
@@ -67,7 +71,8 @@ export default {
       isLoading: false,
       sessions: [],
       currentSessionId: null,
-      preferences: {}
+      preferences: {},
+      isConnected: true
     }
   },
   methods: {
@@ -391,11 +396,13 @@ export default {
     async checkAPIConnection() {
       try {
         const isHealthy = await chatAPI.healthCheck();
+        this.isConnected = isHealthy;
         if (!isHealthy) {
           this.$message.warning('无法连接到后端服务，将使用离线模式');
         }
       } catch (error) {
         console.warn('API健康检查失败:', error);
+        this.isConnected = false;
       }
     },
 
